@@ -18,10 +18,10 @@
 #
 # Система прочности (health):
 #   enabled: true              # Можно ли улучшать прочность
-#   default: 100               # Начальная прочность
-#   max: 1000                  # Максимальная прочность (до 64)
+#   default: 1                 # Начальная прочность
+#   max: 16                    # Максимальная прочность (обычные регионы)
 #   upgrade-item: DIAMOND      # Предмет для улучшения
-#   upgrade-amount: 50         # Сколько прочности добавляет 1 предмет
+#   upgrade-amount: 1          # Сколько прочности добавляет 1 предмет
 #   cost-per-upgrade: 1        # Сколько предметов нужно за улучшение
 #
 # ОСОБЫЙ TNT:
@@ -41,10 +41,10 @@ blocks:
       - TNT
     health:
       enabled: true
-      default: 16
-      max: 32
+      default: 1
+      max: 16
       upgrade-item: IRON_INGOT
-      upgrade-amount: 4
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
   # ═══ АЛМАЗНЫЙ БЛОК ═══
@@ -58,10 +58,10 @@ blocks:
       - TNT
     health:
       enabled: true
-      default: 24
-      max: 48
+      default: 1
+      max: 16
       upgrade-item: DIAMOND
-      upgrade-amount: 6
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
   # ═══ ИЗУМРУДНАЯ РУДА ═══
@@ -75,10 +75,10 @@ blocks:
       - TNT
     health:
       enabled: true
-      default: 32
-      max: 64
+      default: 1
+      max: 16
       upgrade-item: EMERALD
-      upgrade-amount: 8
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
   # ═══ ДРЕВНИЙ ОБЛОМОК ═══
@@ -91,10 +91,10 @@ blocks:
     allowed-explosives: []  # Пустой список = только особый TNT с лором
     health:
       enabled: true
-      default: 40
+      default: 3
       max: 64
       upgrade-item: NETHERITE_INGOT
-      upgrade-amount: 8
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
   # ═══ НЕЗЕРИТОВЫЙ БЛОК ═══
@@ -107,10 +107,10 @@ blocks:
     allowed-explosives: []  # Пустой список = только особый TNT с лором
     health:
       enabled: true
-      default: 48
+      default: 3
       max: 64
       upgrade-item: NETHERITE_INGOT
-      upgrade-amount: 8
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
 # ══════════════════════════════════════════════════════════
