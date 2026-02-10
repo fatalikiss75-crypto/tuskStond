@@ -9,6 +9,7 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.protection.managers.RegionManager;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.regions.ProtectedCuboidRegion;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -99,6 +100,12 @@ public class TushpRegionManager {
 
         World world = location.getWorld();
         if (world == null) return false;
+
+        // Проверка на пересечение с другими регионами
+        if (checkRegionOverlap(location, radius, world)) {
+            player.sendMessage(ChatColor.RED + "Нельзя создать регион в этом месте! Регионы пересекаются.");
+            return false;
+        }
 
         // Создание WorldGuard региона
         try {
@@ -310,6 +317,52 @@ public class TushpRegionManager {
 
         // Лимит по умолчанию из конфига
         return plugin.getConfig().getInt("default-region-limit", 3);
+    }
+
+    /**
+     * Проверка на пересечение нового региона с существующими
+     * @param location Локация центра нового региона
+     * @param radius Радиус нового региона
+     * @param world Мир региона
+     * @return true если есть пересечение, false если нет
+     */
+    private boolean checkRegionOverlap(Location location, int radius, World world) {
+        // Границы нового региона
+        double newMinX = location.getX() - radius;
+        double newMaxX = location.getX() + radius;
+        double newMinY = location.getY() - radius;
+        double newMaxY = location.getY() + radius;
+        double newMinZ = location.getZ() - radius;
+        double newMaxZ = location.getZ() + radius;
+
+        for (ProtectedRegion existingRegion : regions.values()) {
+            // Пропускаем регионы в других мирах
+            if (!existingRegion.getLocation().getWorld().equals(world)) {
+                continue;
+            }
+
+            // Границы существующего региона
+            Location existingLoc = existingRegion.getLocation();
+            double existingRadius = existingRegion.getRadius();
+            double existingMinX = existingLoc.getX() - existingRadius;
+            double existingMaxX = existingLoc.getX() + existingRadius;
+            double existingMinY = existingLoc.getY() - existingRadius;
+            double existingMaxY = existingLoc.getY() + existingRadius;
+            double existingMinZ = existingLoc.getZ() - existingRadius;
+            double existingMaxZ = existingLoc.getZ() + existingRadius;
+
+            // Проверка пересечения по всем трем осям
+            boolean xOverlap = newMinX < existingMaxX && newMaxX > existingMinX;
+            boolean yOverlap = newMinY < existingMaxY && newMaxY > existingMinY;
+            boolean zOverlap = newMinZ < existingMaxZ && newMaxZ > existingMinZ;
+
+            // Если пересекаются по всем трем осям - регионы пересекаются
+            if (xOverlap && yOverlap && zOverlap) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Геттеры
