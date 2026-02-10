@@ -1,0 +1,165 @@
+name: TushpStones
+version: '1.0-SNAPSHOT'
+main: com.example.tushpStones.TushpStones
+api-version: '1.16'
+authors: [Professional Developer]
+description: Плагин приватов блоками с поддержкой взрывов динамитом
+website: https://github.com/yourname/tushpstones
+depend: [WorldGuard, WorldEdit]
+
+commands:
+  ps:
+    description: Основная команда плагина
+    usage: /<command> [подкоманда]
+    aliases: [protectionstone, tushpstone]
+
+permissions:
+  # ═══ БАЗОВЫЕ ПРАВА ═══
+  tushpstones.*:
+    description: Доступ ко всем функциям плагина
+    default: op
+    children:
+      tushpstones.create: true
+      tushpstones.destroy: true
+      tushpstones.info: true
+      tushpstones.view: true
+      tushpstones.hide: true
+      tushpstones.unhide: true
+      tushpstones.home: true
+      tushpstones.tp: true
+      tushpstones.priority: true
+      tushpstones.owners: true
+      tushpstones.members: true
+      tushpstones.flags: true
+      tushpstones.toggle: true
+      tushpstones.region: true
+      tushpstones.count: true
+      tushpstones.list: true
+      tushpstones.admin: true
+
+  # ═══ СОЗДАНИЕ И УДАЛЕНИЕ ═══
+  tushpstones.create:
+    description: Разрешение на создание приватов
+    default: true
+  
+  tushpstones.destroy:
+    description: Разрешение на удаление собственных приватов
+    default: true
+
+  # ═══ ИНФОРМАЦИЯ ═══
+  tushpstones.info:
+    description: Просмотр информации о регионе
+    default: true
+  
+  tushpstones.view:
+    description: Просмотр границ региона
+    default: true
+
+  tushpstones.count:
+    description: Просмотр количества своих регионов
+    default: true
+  
+  tushpstones.list:
+    description: Просмотр списка своих регионов
+    default: true
+
+  # ═══ УПРАВЛЕНИЕ БЛОКОМ ═══
+  tushpstones.hide:
+    description: Скрыть блок привата
+    default: true
+  
+  tushpstones.unhide:
+    description: Показать скрытый блок привата
+    default: true
+
+  # ═══ ТЕЛЕПОРТАЦИЯ ═══
+  tushpstones.home:
+    description: Телепортация в свой приват
+    default: true
+  
+  tushpstones.tp:
+    description: Телепортация в чужой приват
+    default: op
+
+  # ═══ УПРАВЛЕНИЕ РЕГИОНОМ ═══
+  tushpstones.priority:
+    description: Установка приоритета региона
+    default: op
+  
+  tushpstones.owners:
+    description: Добавление/удаление совладельцев
+    default: true
+  
+  tushpstones.members:
+    description: Добавление/удаление участников
+    default: true
+  
+  tushpstones.flags:
+    description: Установка флагов региона
+    default: op
+
+  tushpstones.toggle:
+    description: Включение/выключение размещения блоков
+    default: true
+
+  tushpstones.region:
+    description: Команды управления регионами
+    default: op
+
+  # ═══ АДМИНИСТРИРОВАНИЕ ═══
+  tushpstones.admin:
+    description: Административные права (доступ ко всем регионам)
+    default: op
+    children:
+      tushpstones.admin.reload: true
+      tushpstones.admin.bypass: true
+      tushpstones.admin.remove: true
+
+  tushpstones.admin.reload:
+    description: Перезагрузка конфигурации
+    default: op
+
+  tushpstones.admin.bypass:
+    description: Обход всех ограничений
+    default: op
+
+  tushpstones.admin.remove:
+    description: Удаление чужих регионов
+    default: op
+
+  # ═══ ЛИМИТЫ РЕГИОНОВ ═══
+  # Эти права определяют максимальное количество регионов
+  # Используйте: tushpstones.limit.<число>
+  # Например: tushpstones.limit.5 = максимум 5 регионов
+
+  tushpstones.limit.unlimited:
+    description: Безлимитное количество регионов
+    default: op
+
+  tushpstones.limit.1:
+    description: Максимум 1 регион
+    default: false
+
+  tushpstones.limit.3:
+    description: Максимум 3 региона
+    default: false
+
+  tushpstones.limit.5:
+    description: Максимум 5 регионов
+    default: false
+
+  tushpstones.limit.10:
+    description: Максимум 10 регионов
+    default: false
+
+  tushpstones.limit.20:
+    description: Максимум 20 регионов
+    default: false
+
+  tushpstones.limit.50:
+    description: Максимум 50 регионов
+    default: false
+
+  tushpstones.limit.100:
+    description: Максимум 100 регионов
+    default: false

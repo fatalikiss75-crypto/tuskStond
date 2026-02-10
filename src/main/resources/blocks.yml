@@ -1,0 +1,207 @@
+# ══════════════════════════════════════════════════════════
+#           TushpStones - Blocks Configuration
+# ══════════════════════════════════════════════════════════
+# Конфигурация блоков приватов
+#
+# Структура:
+#   blocks:
+#     <id>:
+#       material: <тип_блока>
+#       radius: <радиус_в_блоках>
+#       priority: <приоритет_региона>
+#       can-be-destroyed: <true/false>
+#       allowed-explosives: [список_взрывчатки]
+#       flags: <флаги_WorldGuard>
+#
+# Типы взрывчатки:
+#   - TNT - обычный динамит
+#   - CREEPER_HEAD - взрыв крипера
+#   - TNT_MINECART - вагонетка с динамитом
+#   - WITHER_SKELETON_SKULL - визер
+#   - FIRE_CHARGE - огненный шар
+#   - END_CRYSTAL - кристалл края
+# ══════════════════════════════════════════════════════════
+
+blocks:
+  # ═══ БАЗОВЫЙ ПРИВАТ (губка) ═══
+  # Может быть взорван любым динамитом
+  basic_protection:
+    material: SPONGE
+    radius: 10
+    priority: 0
+    can-be-destroyed: true
+    # Пустой список = можно взорвать любой взрывчаткой
+    allowed-explosives: []
+    flags:
+      pvp: deny
+      mob-spawning: deny
+      creeper-explosion: deny
+      tnt: deny
+      fire-spread: deny
+      lava-flow: deny
+
+  # ═══ СРЕДНИЙ ПРИВАТ (красный песчаник) ═══
+  # Можно взорвать только обычным TNT
+  medium_protection:
+    material: RED_SANDSTONE
+    radius: 15
+    priority: 1
+    can-be-destroyed: true
+    allowed-explosives:
+      - TNT
+    flags:
+      pvp: deny
+      mob-spawning: deny
+      creeper-explosion: deny
+      ghast-fireball: deny
+      other-explosion: deny
+      fire-spread: deny
+      lava-flow: deny
+      water-flow: deny
+
+  # ═══ УСИЛЕННЫЙ ПРИВАТ (обсидиан) ═══
+  # Можно взорвать только вагонеткой с TNT или кристаллом края
+  reinforced_protection:
+    material: OBSIDIAN
+    radius: 20
+    priority: 2
+    can-be-destroyed: true
+    allowed-explosives:
+      - TNT_MINECART
+      - END_CRYSTAL
+    flags:
+      pvp: deny
+      mob-spawning: deny
+      creeper-explosion: deny
+      tnt: deny
+      other-explosion: deny
+      fire-spread: deny
+      lava-flow: deny
+      water-flow: deny
+      chest-access: deny
+      use: deny
+
+  # ═══ КРЕПОСТЬ (beacon) ═══
+  # Можно взорвать только визером
+  fortress_protection:
+    material: BEACON
+    radius: 25
+    priority: 3
+    can-be-destroyed: true
+    allowed-explosives:
+      - WITHER_SKELETON_SKULL
+    flags:
+      pvp: deny
+      mob-spawning: deny
+      creeper-explosion: deny
+      tnt: deny
+      other-explosion: deny
+      ghast-fireball: deny
+      fire-spread: deny
+      lava-flow: deny
+      water-flow: deny
+      enderdragon-block-damage: deny
+      enderman-grief: deny
+      chest-access: deny
+      use: deny
+      interact: deny
+
+  # ═══ НЕРАЗРУШИМЫЙ ПРИВАТ (драконье яйцо) ═══
+  # НЕЛЬЗЯ взорвать ничем!
+  unbreakable_protection:
+    material: DRAGON_EGG
+    radius: 30
+    priority: 10
+    can-be-destroyed: false
+    allowed-explosives: []
+    flags:
+      pvp: deny
+      mob-spawning: deny
+      creeper-explosion: deny
+      tnt: deny
+      other-explosion: deny
+      ghast-fireball: deny
+      fire-spread: deny
+      lava-flow: deny
+      water-flow: deny
+      enderdragon-block-damage: deny
+      enderman-grief: deny
+      chest-access: deny
+      use: deny
+      interact: deny
+      wither-damage: deny
+
+  # ═══ ПРЕМИУМ ПРИВАТ (изумрудный блок) ═══
+  # Большой радиус, можно взорвать только крипером (для рейдов)
+  premium_protection:
+    material: EMERALD_BLOCK
+    radius: 35
+    priority: 5
+    can-be-destroyed: true
+    allowed-explosives:
+      - CREEPER_HEAD
+    flags:
+      pvp: deny
+      mob-spawning: deny
+      tnt: deny
+      fire-spread: deny
+      lava-flow: deny
+      water-flow: deny
+
+  # ═══ VIP ПРИВАТ (алмазный блок) ═══
+  # Очень большой радиус, можно взорвать огненным шаром
+  vip_protection:
+    material: DIAMOND_BLOCK
+    radius: 40
+    priority: 7
+    can-be-destroyed: true
+    allowed-explosives:
+      - FIRE_CHARGE
+      - WITHER_SKELETON_SKULL
+    flags:
+      pvp: deny
+      mob-spawning: deny
+      creeper-explosion: deny
+      tnt: deny
+      fire-spread: deny
+      lava-flow: deny
+      water-flow: deny
+      chest-access: deny
+
+  # ═══ МИНИ ПРИВАТ (золотой самородок) ═══
+  # Маленький приват для новичков, легко взрывается
+  mini_protection:
+    material: GOLD_NUGGET
+    radius: 5
+    priority: 0
+    can-be-destroyed: true
+    allowed-explosives:
+      - TNT
+      - CREEPER_HEAD
+      - TNT_MINECART
+    flags:
+      pvp: deny
+      mob-spawning: deny
+      fire-spread: deny
+
+# ══════════════════════════════════════════════════════════
+# ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ:
+# 
+# 1. Приват который НЕЛЬЗЯ взорвать:
+#    can-be-destroyed: false
+#
+# 2. Приват который можно взорвать ЛЮБЫМ динамитом:
+#    can-be-destroyed: true
+#    allowed-explosives: []
+#
+# 3. Приват который можно взорвать ТОЛЬКО TNT:
+#    can-be-destroyed: true
+#    allowed-explosives:
+#      - TNT
+#
+# 4. Приват который можно взорвать TNT ИЛИ крипером:
+#    can-be-destroyed: true
+#    allowed-explosives:
+#      - TNT
+#      - CREEPER_HEAD
+# ══════════════════════════════════════════════════════════

@@ -1,0 +1,59 @@
+# ══════════════════════════════════════════════════════════
+#           TushpStones - Configuration File
+# ══════════════════════════════════════════════════════════
+# Плагин для создания приватов блоками с поддержкой взрывов
+# Автор: Professional Developer
+# ══════════════════════════════════════════════════════════
+
+# Лимит регионов по умолчанию (если не указано через права)
+# Игроки с правом tushpstones.limit.X могут иметь X регионов
+# Право tushpstones.limit.unlimited - безлимитные регионы
+default-region-limit: 3
+
+# Сообщения при взрывах
+explosion-messages: true
+
+# Сохранять ли логи о взрывах регионов
+log-explosions: true
+
+# Защита от пересечения регионов
+prevent-region-overlap: true
+
+# Минимальное расстояние между регионами (в блоках)
+minimum-region-distance: 5
+
+# Автосохранение данных (в минутах, 0 = отключено)
+auto-save-interval: 10
+
+# Сообщения
+messages:
+  prefix: "&7[&6TushpStones&7]&r "
+  no-permission: "&cУ вас нет прав на это действие!"
+  region-created: "&aРегион успешно создан!"
+  region-destroyed: "&cВаш регион был уничтожен!"
+  region-limit-reached: "&cВы достигли лимита регионов!"
+  player-not-found: "&cИгрок не найден!"
+  not-in-region: "&cВы не находитесь в регионе!"
+  not-owner: "&cВы не владелец этого региона!"
+
+# Дополнительные настройки защиты
+protection:
+  # Блокировать ли урон по мобам в регионе
+  block-mob-damage: true
+  # Блокировать ли PvP в регионе
+  block-pvp: true
+  # Защита от поршней
+  protect-from-pistons: true
+  # Защита от огня
+  protect-from-fire: true
+
+# Настройки визуализации частицами
+particles:
+  # Показывать ли частицы при создании региона
+  show-particles-on-creation: true
+  # Показывать ли частицы при разрушении региона
+  show-particles-on-destruction: true
+  # Длительность отображения границ (в секундах)
+  border-display-duration: 5
+  # Расстояние, на котором другие игроки видят частицы (0 = только создатель)
+  visible-distance: 0
