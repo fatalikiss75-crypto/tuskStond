@@ -63,9 +63,10 @@ public class ProtectionBlock {
             return false;
         }
 
-        // Если список пуст, значит любой динамит может разрушить
+        // Если список пустой, значит НИКАКОЙ обычный динамит не может разрушить
+        // (только особый TNT с лором может разрушить)
         if (allowedExplosives.isEmpty()) {
-            return true;
+            return false;
         }
 
         return allowedExplosives.contains(explosive);

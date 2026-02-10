@@ -17,8 +17,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Обработчик взрывов - управляет разрушением приватов динамитом
@@ -29,9 +38,123 @@ public class ExplosionListener implements Listener {
     private final TushpStones plugin;
     private final ParticleVisualizer visualizer;
 
+    // Хранилище для лора TNT сущностей (UUID TNTPrimed -> тип TNT)
+    private final Map<UUID, TNTType> tntTypes = new HashMap<>();
+
+    // Типы TNT на основе лора
+    private enum TNTType {
+        NORMAL,           // Обычный TNT
+        BLACK_TNT         // Особый TNT с лором "Этот динамит способен взрывать обсидиан и регионы"
+    }
+
     public ExplosionListener(TushpStones plugin) {
         this.plugin = plugin;
         this.visualizer = new ParticleVisualizer(plugin);
+    }
+
+    /**
+     * Перехват установки TNT для сохранения лора
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onTNTPlace(BlockPlaceEvent event) {
+        Block block = event.getBlockPlaced();
+        if (block.getType() != Material.TNT) {
+            return;
+        }
+
+        ItemStack item = event.getItemInHand();
+        if (item == null || !item.hasItemMeta()) {
+            return;
+        }
+
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasLore()) {
+            return;
+        }
+
+        List<String> lore = meta.getLore();
+        if (lore == null) {
+            return;
+        }
+
+        // Проверяем лор на наличие особой фразы
+        for (String line : lore) {
+            String plainLine = ChatColor.stripColor(line);
+            if (plainLine.contains("Этот динамит способен взрывать обсидиан и регионы")) {
+                // TNT с особым лором
+                plugin.getLogger().info("Обнаружен особый TNT с лором!");
+                // Сохраняем информацию в блоке
+                block.setMetadata("special_tnt", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+                break;
+            }
+        }
+    }
+
+    /**
+     * Перехват активации TNT для получения типа TNT
+     */
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onTNTIgnite(org.bukkit.event.block.BlockIgniteEvent event) {
+        if (event.getBlock().getType() != Material.TNT) {
+            return;
+        }
+
+        // Проверяем, есть ли метаданные особого TNT
+        if (event.getBlock().hasMetadata("special_tnt")) {
+            // TNT с особым лором
+            plugin.getLogger().info("TNT с особым лором активирован");
+            // Будем искать TNTPrimed сущность и отмечать её
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                event.getBlock().getLocation().getWorld().getNearbyEntities(
+                        event.getBlock().getLocation().add(0.5, 0.5, 0.5), 1, 1, 1
+                ).stream()
+                        .filter(e -> e.getType() == EntityType.TNT)
+                        .findFirst()
+                        .ifPresent(entity -> {
+                            tntTypes.put(entity.getUniqueId(), TNTType.BLACK_TNT);
+                            plugin.getLogger().info("TNTPrimed помечен как BLACK_TNT");
+                        });
+            }, 1L);
+        }
+    }
+
+    /**
+     * Очистка устаревших записей о TNT
+     * Выполняется с LOWEST приоритетом, чтобы очистить после всех обработчиков
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onEntityExplodeCleanup(EntityExplodeEvent event) {
+        if (event.getEntity() != null && event.getEntity().getType() == EntityType.TNT) {
+            tntTypes.remove(event.getEntity().getUniqueId());
+        }
+    }
+
+    /**
+     * Очистка при удалении сущности (на всякий случай)
+     */
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onEntityRemove(org.bukkit.event.entity.EntityRemoveEvent event) {
+        if (event.getEntity() != null && event.getEntity().getType() == EntityType.TNT) {
+            tntTypes.remove(event.getEntity().getUniqueId());
+        }
+    }
+
+    /**
+     * Получить тип TNT по UUID сущности
+     */
+    private TNTType getTNTType(UUID tntUuid) {
+        return tntTypes.getOrDefault(tntUuid, TNTType.NORMAL);
+    }
+
+    /**
+     * Проверить, является ли TNT особым (с лором)
+     */
+    private boolean isSpecialTNT(EntityExplodeEvent event) {
+        if (event.getEntity() == null || event.getEntity().getType() != EntityType.TNT) {
+            return false;
+        }
+
+        return getTNTType(event.getEntity().getUniqueId()) == TNTType.BLACK_TNT;
     }
 
     /**
@@ -43,6 +166,11 @@ public class ExplosionListener implements Listener {
         Material explosiveType = getExplosiveType(event.getEntityType());
         if (explosiveType == null) {
             return; // Не взрывчатка
+        }
+
+        // Проверяем, что это именно TNT
+        if (explosiveType != Material.TNT) {
+            return; // Разрешаем разрушать только TNT
         }
 
         Location explosionLocation = event.getLocation();
@@ -74,15 +202,22 @@ public class ExplosionListener implements Listener {
             }
 
             // КЛЮЧЕВАЯ ЛОГИКА: Проверка, может ли этот тип динамита разрушить этот тип привата
-            if (!protectionBlock.canBeDestroyedBy(explosiveType)) {
+            // Специальный TNT с лором может взрывать все регионы
+            boolean isSpecial = isSpecialTNT(event);
+            boolean canDestroy = isSpecial || protectionBlock.canBeDestroyedBy(explosiveType);
+
+            if (!canDestroy) {
                 // Удаляем блок из списка разрушаемых (защищаем)
                 blockIterator.remove();
 
                 // Опциональное сообщение (если взорвал игрок)
                 Player bomber = getTNTPlacer(event);
                 if (bomber != null && plugin.getConfig().getBoolean("explosion-messages", true)) {
-                    bomber.sendMessage(ChatColor.RED + "⚠ Этот приват защищен от " +
-                            explosiveType.name().toLowerCase().replace("_", " ") + "!");
+                    if (isSpecial) {
+                        bomber.sendMessage(ChatColor.RED + "⚠ Этот приват защищен!");
+                    } else {
+                        bomber.sendMessage(ChatColor.RED + "⚠ Этот приват требует особый динамит!");
+                    }
                 }
 
                 continue;
