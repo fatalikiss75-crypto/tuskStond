@@ -15,19 +15,18 @@
 #
 # Типы взрывчатки:
 #   - TNT - обычный динамит
-#   - CREEPER_HEAD - взрыв крипера
-#   - TNT_MINECART - вагонетка с динамитом
-#   - WITHER_SKELETON_SKULL - визер
-#   - FIRE_CHARGE - огненный шар
-#   - END_CRYSTAL - кристалл края
 #
 # Система прочности (health):
 #   enabled: true              # Можно ли улучшать прочность
-#   default: 100               # Начальная прочность
-#   max: 1000                  # Максимальная прочность
+#   default: 1                 # Начальная прочность
+#   max: 16                    # Максимальная прочность (обычные регионы)
 #   upgrade-item: DIAMOND      # Предмет для улучшения
-#   upgrade-amount: 50         # Сколько прочности добавляет 1 предмет
+#   upgrade-amount: 1          # Сколько прочности добавляет 1 предмет
 #   cost-per-upgrade: 1        # Сколько предметов нужно за улучшение
+#
+# ОСОБЫЙ TNT:
+#   TNT с лором "Этот динамит способен взрывать обсидиан и регионы"
+#   может взрывать все регионы, независимо от allowed-explosives
 # ══════════════════════════════════════════════════════════
 
 blocks:
@@ -40,13 +39,12 @@ blocks:
     can-be-destroyed: true
     allowed-explosives:
       - TNT
-      - CREEPER_HEAD
     health:
       enabled: true
-      default: 50
-      max: 200
+      default: 1
+      max: 16
       upgrade-item: IRON_INGOT
-      upgrade-amount: 25
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
   # ═══ АЛМАЗНЫЙ БЛОК ═══
@@ -58,14 +56,12 @@ blocks:
     can-be-destroyed: true
     allowed-explosives:
       - TNT
-      - CREEPER_HEAD
-      - TNT_MINECART
     health:
       enabled: true
-      default: 100
-      max: 500
+      default: 1
+      max: 16
       upgrade-item: DIAMOND
-      upgrade-amount: 40
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
   # ═══ ИЗУМРУДНАЯ РУДА ═══
@@ -77,58 +73,44 @@ blocks:
     can-be-destroyed: true
     allowed-explosives:
       - TNT
-      - CREEPER_HEAD
-      - TNT_MINECART
-      - FIRE_CHARGE
     health:
       enabled: true
-      default: 200
-      max: 800
+      default: 1
+      max: 16
       upgrade-item: EMERALD
-      upgrade-amount: 35
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
   # ═══ ДРЕВНИЙ ОБЛОМОК ═══
-  # Сильная защита
+  # Сильная защита (только особый TNT)
   ancient_debris_protection:
     material: ANCIENT_DEBRIS
     radius: 25
     priority: 3
     can-be-destroyed: true
-    allowed-explosives:
-      - TNT
-      - CREEPER_HEAD
-      - TNT_MINECART
-      - FIRE_CHARGE
-      - WITHER_SKELETON_SKULL
+    allowed-explosives: []  # Пустой список = только особый TNT с лором
     health:
       enabled: true
-      default: 300
-      max: 1000
+      default: 3
+      max: 64
       upgrade-item: NETHERITE_INGOT
-      upgrade-amount: 30
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
   # ═══ НЕЗЕРИТОВЫЙ БЛОК ═══
-  # Самый мощный приват
+  # Самый мощный приват (только особый TNT)
   netherite_protection:
     material: NETHERITE_BLOCK
     radius: 30
     priority: 4
     can-be-destroyed: true
-    allowed-explosives:
-      - TNT
-      - CREEPER_HEAD
-      - TNT_MINECART
-      - FIRE_CHARGE
-      - WITHER_SKELETON_SKULL
-      - END_CRYSTAL
+    allowed-explosives: []  # Пустой список = только особый TNT с лором
     health:
       enabled: true
-      default: 500
-      max: 1500
+      default: 3
+      max: 64
       upgrade-item: NETHERITE_INGOT
-      upgrade-amount: 25
+      upgrade-amount: 1
       cost-per-upgrade: 1
 
 # ══════════════════════════════════════════════════════════
@@ -137,31 +119,29 @@ blocks:
 # 1. Приват который НЕЛЬЗЯ взорвать:
 #    can-be-destroyed: false
 #
-# 2. Приват который можно взорвать ЛЮБЫМ динамитом:
+# 2. Приват который можно взорвать обычным TNT:
+#    can-be-destroyed: true
+#    allowed-explosives:
+#      - TNT
+#
+# 3. Приват который можно взорвать ТОЛЬКО особым TNT с лором:
 #    can-be-destroyed: true
 #    allowed-explosives: []
 #
-# 3. Приват который можно взорвать ТОЛЬКО TNT:
-#    can-be-destroyed: true
-#    allowed-explosives:
-#      - TNT
-#
-# 4. Приват который можно взорвать TNT ИЛИ крипером:
-#    can-be-destroyed: true
-#    allowed-explosives:
-#      - TNT
-#      - CREEPER_HEAD
-#
-# 5. Система прочности отключена:
+# 4. Система прочности отключена:
 #    health:
 #      enabled: false
 #
-# 6. Система прочности с алмазами:
+# 5. Система прочности с алмазами:
 #    health:
 #      enabled: true
-#      default: 100
-#      max: 1000
+#      default: 16
+#      max: 64
 #      upgrade-item: DIAMOND
-#      upgrade-amount: 50
+#      upgrade-amount: 8
 #      cost-per-upgrade: 1
+#
+# ОСОБЫЙ TNT:
+#   Создайте TNT с лором "Этот динамит способен взрывать обсидиан и регионы"
+#   Этот динамит сможет взрывать все регионы, независимо от allowed-explosives
 # ══════════════════════════════════════════════════════════

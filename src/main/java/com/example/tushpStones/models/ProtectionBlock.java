@@ -63,9 +63,10 @@ public class ProtectionBlock {
             return false;
         }
 
-        // Если список пуст, значит любой динамит может разрушить
+        // Если список пустой, значит НИКАКОЙ обычный динамит не может разрушить
+        // (только особый TNT с лором может разрушить)
         if (allowedExplosives.isEmpty()) {
-            return true;
+            return false;
         }
 
         return allowedExplosives.contains(explosive);
@@ -74,30 +75,15 @@ public class ProtectionBlock {
     /**
      * Получить урон от взрыва определенного типа
      * @param explosive Тип взрывчатки
-     * @return Урон региону (0 если не может нанести урон)
+     * @return Урон региону (0 если не может нанести урон, 1 для TNT)
      */
     public int getExplosionDamage(Material explosive) {
         if (!canBeDestroyedBy(explosive)) {
             return 0;
         }
 
-        // Базовый урон в зависимости от типа взрыва
-        switch (explosive.name()) {
-            case "TNT":
-                return 25;
-            case "CREEPER_HEAD":
-                return 20;
-            case "TNT_MINECART":
-                return 35;
-            case "END_CRYSTAL":
-                return 50;
-            case "WITHER_SKELETON_SKULL":
-                return 45;
-            case "FIRE_CHARGE":
-                return 15;
-            default:
-                return 20;
-        }
+        // TNT всегда наносит 1 урон
+        return 1;
     }
 
     /**
