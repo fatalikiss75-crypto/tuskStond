@@ -11,7 +11,6 @@
 #       priority: <приоритет_региона>
 #       can-be-destroyed: <true/false>
 #       allowed-explosives: [список_взрывчатки]
-#       flags: <флаги_WorldGuard>
 #       health: <система_прочности>
 #
 # Типы взрывчатки:
@@ -32,217 +31,103 @@
 # ══════════════════════════════════════════════════════════
 
 blocks:
-  # ═══ БАЗОВЫЙ ПРИВАТ (губка) ═══
-  # Может быть взорван любым динамитом
-  basic_protection:
-    material: SPONGE
-    radius: 10
-    priority: 0
-    can-be-destroyed: true
-    # Пустой список = можно взорвать любой взрывчаткой
-    allowed-explosives: []
-    flags:
-      pvp: deny
-      mob-spawning: deny
-      creeper-explosion: deny
-      tnt: deny
-      fire-spread: deny
-      lava-flow: deny
-    # Система прочности
-    health:
-      enabled: true
-      default: 100
-      max: 500
-      upgrade-item: DIAMOND
-      upgrade-amount: 50
-      cost-per-upgrade: 1
-
-  # ═══ СРЕДНИЙ ПРИВАТ (красный песчаник) ═══
-  # Можно взорвать только обычным TNT
-  medium_protection:
-    material: RED_SANDSTONE
-    radius: 15
-    priority: 1
-    can-be-destroyed: true
-    allowed-explosives:
-      - TNT
-    flags:
-      pvp: deny
-      mob-spawning: deny
-      creeper-explosion: deny
-      ghast-fireball: deny
-      other-explosion: deny
-      fire-spread: deny
-      lava-flow: deny
-      water-flow: deny
-    health:
-      enabled: true
-      default: 200
-      max: 800
-      upgrade-item: DIAMOND
-      upgrade-amount: 40
-      cost-per-upgrade: 1
-
-  # ═══ УСИЛЕННЫЙ ПРИВАТ (обсидиан) ═══
-  # Можно взорвать только вагонеткой с TNT или кристаллом края
-  reinforced_protection:
-    material: OBSIDIAN
-    radius: 20
-    priority: 2
-    can-be-destroyed: true
-    allowed-explosives:
-      - TNT_MINECART
-      - END_CRYSTAL
-    flags:
-      pvp: deny
-      mob-spawning: deny
-      creeper-explosion: deny
-      tnt: deny
-      other-explosion: deny
-      fire-spread: deny
-      lava-flow: deny
-      water-flow: deny
-      chest-access: deny
-      use: deny
-    health:
-      enabled: true
-      default: 300
-      max: 1000
-      upgrade-item: EMERALD
-      upgrade-amount: 30
-      cost-per-upgrade: 1
-
-  # ═══ КРЕПОСТЬ (beacon) ═══
-  # Можно взорвать только визером
-  fortress_protection:
-    material: BEACON
-    radius: 25
-    priority: 3
-    can-be-destroyed: true
-    allowed-explosives:
-      - WITHER_SKELETON_SKULL
-    flags:
-      pvp: deny
-      mob-spawning: deny
-      creeper-explosion: deny
-      tnt: deny
-      other-explosion: deny
-      ghast-fireball: deny
-      fire-spread: deny
-      lava-flow: deny
-      water-flow: deny
-      enderdragon-block-damage: deny
-      enderman-grief: deny
-      chest-access: deny
-      use: deny
-      interact: deny
-    health:
-      enabled: true
-      default: 500
-      max: 1500
-      upgrade-item: NETHERITE_INGOT
-      upgrade-amount: 25
-      cost-per-upgrade: 1
-
-  # ═══ НЕРАЗРУШИМЫЙ ПРИВАТ (драконье яйцо) ═══
-  # НЕЛЬЗЯ взорвать ничем!
-  unbreakable_protection:
-    material: DRAGON_EGG
-    radius: 30
-    priority: 10
-    can-be-destroyed: false
-    allowed-explosives: []
-    flags:
-      pvp: deny
-      mob-spawning: deny
-      creeper-explosion: deny
-      tnt: deny
-      other-explosion: deny
-      ghast-fireball: deny
-      fire-spread: deny
-      lava-flow: deny
-      water-flow: deny
-      enderdragon-block-damage: deny
-      enderman-grief: deny
-      chest-access: deny
-      use: deny
-      interact: deny
-      wither-damage: deny
-    # Система прочности отключена для неразрушимого привата
-    health:
-      enabled: false
-
-  # ═══ ПРЕМИУМ ПРИВАТ (изумрудный блок) ═══
-  # Большой радиус, можно взорвать только крипером (для рейдов)
-  premium_protection:
-    material: EMERALD_BLOCK
-    radius: 35
-    priority: 5
-    can-be-destroyed: true
-    allowed-explosives:
-      - CREEPER_HEAD
-    flags:
-      pvp: deny
-      mob-spawning: deny
-      tnt: deny
-      fire-spread: deny
-      lava-flow: deny
-      water-flow: deny
-    health:
-      enabled: true
-      default: 400
-      max: 1200
-      upgrade-item: EMERALD
-      upgrade-amount: 35
-      cost-per-upgrade: 1
-
-  # ═══ VIP ПРИВАТ (алмазный блок) ═══
-  # Очень большой радиус, можно взорвать огненным шаром
-  vip_protection:
-    material: DIAMOND_BLOCK
-    radius: 40
-    priority: 7
-    can-be-destroyed: true
-    allowed-explosives:
-      - FIRE_CHARGE
-      - WITHER_SKELETON_SKULL
-    flags:
-      pvp: deny
-      mob-spawning: deny
-      creeper-explosion: deny
-      tnt: deny
-      fire-spread: deny
-      lava-flow: deny
-      water-flow: deny
-      chest-access: deny
-    health:
-      enabled: true
-      default: 600
-      max: 2000
-      upgrade-item: DIAMOND
-      upgrade-amount: 50
-      cost-per-upgrade: 1
-
-  # ═══ МИНИ ПРИВАТ (золотой самородок) ═══
-  # Маленький приват для новичков, легко взрывается
-  mini_protection:
-    material: GOLD_NUGGET
-    radius: 5
+  # ═══ ЗОЛОТОЙ БЛОК (самый нищий) ═══
+  # Маленький приват для новичков
+  gold_protection:
+    material: GOLD_BLOCK
+    radius: 8
     priority: 0
     can-be-destroyed: true
     allowed-explosives:
       - TNT
       - CREEPER_HEAD
-      - TNT_MINECART
-    flags:
-      pvp: deny
-      mob-spawning: deny
-      fire-spread: deny
     health:
       enabled: true
       default: 50
       max: 200
       upgrade-item: IRON_INGOT
+      upgrade-amount: 25
+      cost-per-upgrade: 1
+
+  # ═══ АЛМАЗНЫЙ БЛОК ═══
+  # Средний приват
+  diamond_protection:
+    material: DIAMOND_BLOCK
+    radius: 15
+    priority: 1
+    can-be-destroyed: true
+    allowed-explosives:
+      - TNT
+      - CREEPER_HEAD
+      - TNT_MINECART
+    health:
+      enabled: true
+      default: 100
+      max: 500
+      upgrade-item: DIAMOND
+      upgrade-amount: 40
+      cost-per-upgrade: 1
+
+  # ═══ ИЗУМРУДНАЯ РУДА ═══
+  # Хорошая защита
+  emerald_protection:
+    material: EMERALD_ORE
+    radius: 20
+    priority: 2
+    can-be-destroyed: true
+    allowed-explosives:
+      - TNT
+      - CREEPER_HEAD
+      - TNT_MINECART
+      - FIRE_CHARGE
+    health:
+      enabled: true
+      default: 200
+      max: 800
+      upgrade-item: EMERALD
+      upgrade-amount: 35
+      cost-per-upgrade: 1
+
+  # ═══ ДРЕВНИЙ ОБЛОМОК ═══
+  # Сильная защита
+  ancient_debris_protection:
+    material: ANCIENT_DEBRIS
+    radius: 25
+    priority: 3
+    can-be-destroyed: true
+    allowed-explosives:
+      - TNT
+      - CREEPER_HEAD
+      - TNT_MINECART
+      - FIRE_CHARGE
+      - WITHER_SKELETON_SKULL
+    health:
+      enabled: true
+      default: 300
+      max: 1000
+      upgrade-item: NETHERITE_INGOT
+      upgrade-amount: 30
+      cost-per-upgrade: 1
+
+  # ═══ НЕЗЕРИТОВЫЙ БЛОК ═══
+  # Самый мощный приват
+  netherite_protection:
+    material: NETHERITE_BLOCK
+    radius: 30
+    priority: 4
+    can-be-destroyed: true
+    allowed-explosives:
+      - TNT
+      - CREEPER_HEAD
+      - TNT_MINECART
+      - FIRE_CHARGE
+      - WITHER_SKELETON_SKULL
+      - END_CRYSTAL
+    health:
+      enabled: true
+      default: 500
+      max: 1500
+      upgrade-item: NETHERITE_INGOT
       upgrade-amount: 25
       cost-per-upgrade: 1
 

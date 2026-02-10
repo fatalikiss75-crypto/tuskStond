@@ -144,6 +144,18 @@ public class BlockListener implements Listener {
             return;
         }
 
+        // В креативном режиме регион всегда удаляется
+        if (player.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+            boolean removed = plugin.getRegionManager().removeRegion(region.getId());
+            if (removed) {
+                player.sendMessage(ChatColor.YELLOW + "Регион " + ChatColor.GOLD + region.getId() + ChatColor.YELLOW + " удален!");
+            } else {
+                event.setCancelled(true);
+                player.sendMessage(ChatColor.RED + "Ошибка при удалении региона!");
+            }
+            return;
+        }
+
         // Удаление региона
         boolean removed = plugin.getRegionManager().removeRegion(region.getId());
 
