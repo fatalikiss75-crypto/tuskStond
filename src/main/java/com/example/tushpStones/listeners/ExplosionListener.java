@@ -4,9 +4,11 @@ import com.example.tushpStones.TushpStones;
 import com.example.tushpStones.models.ProtectionBlock;
 import com.example.tushpStones.models.ProtectedRegion;
 import com.example.tushpStones.utils.ParticleVisualizer;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -20,6 +22,7 @@ import java.util.Iterator;
 
 /**
  * Обработчик взрывов - управляет разрушением приватов динамитом
+ * Система прочности: взрывы наносят урон вместо мгновенного удаления
  */
 public class ExplosionListener implements Listener {
 
@@ -47,7 +50,7 @@ public class ExplosionListener implements Listener {
 
         while (blockIterator.hasNext()) {
             Block block = blockIterator.next();
-            
+
             // Проверяем, является ли блок защитным
             if (!plugin.getConfigManager().isProtectionBlock(block.getType())) {
                 continue;
@@ -74,53 +77,173 @@ public class ExplosionListener implements Listener {
             if (!protectionBlock.canBeDestroyedBy(explosiveType)) {
                 // Удаляем блок из списка разрушаемых (защищаем)
                 blockIterator.remove();
-                
+
                 // Опциональное сообщение (если взорвал игрок)
                 Player bomber = getTNTPlacer(event);
                 if (bomber != null && plugin.getConfig().getBoolean("explosion-messages", true)) {
-                    bomber.sendMessage(ChatColor.RED + "⚠ Этот приват защищен от " + 
-                        explosiveType.name().toLowerCase().replace("_", " ") + "!");
+                    bomber.sendMessage(ChatColor.RED + "⚠ Этот приват защищен от " +
+                            explosiveType.name().toLowerCase().replace("_", " ") + "!");
                 }
-                
+
                 continue;
             }
 
             // Блок МОЖЕТ быть разрушен этим типом взрывчатки
-            boolean removed = plugin.getRegionManager().removeRegion(region.getId());
-            
-            if (removed) {
-                // 🎨 АНИМАЦИЯ РАЗРУШЕНИЯ
-                Player bomber = getTNTPlacer(event);
+            // ═══════════════════════════════════════════════════════════
+            // НОВАЯ СИСТЕМА: Наносим урон вместо мгновенного удаления
+            // ═══════════════════════════════════════════════════════════
 
-                if (plugin.getConfig().getBoolean("show-particles-on-destruction", true)) {
-                    visualizer.showDestructionAnimation(
-                            region.getLocation(),
-                            region.getRadius(),
-                            bomber
-                    );
-                }
-                
-                // Уведомление владельца
-                Player owner = plugin.getServer().getPlayer(region.getOwner());
-                if (owner != null && owner.isOnline()) {
-                    owner.sendMessage(ChatColor.RED + "═══════════════════════════════");
-                    owner.sendMessage(ChatColor.DARK_RED + "⚠ ВАШ РЕГИОН БЫЛ ВЗОРВАН!");
-                    owner.sendMessage(ChatColor.RED + "Регион: " + ChatColor.YELLOW + region.getId());
-                    owner.sendMessage(ChatColor.RED + "Тип взрыва: " + ChatColor.YELLOW + 
-                        explosiveType.name().toLowerCase().replace("_", " "));
-                    owner.sendMessage(ChatColor.RED + "═══════════════════════════════");
-                }
+            Player bomber = getTNTPlacer(event);
 
-                // Уведомление взорвавшего
-                if (bomber != null) {
-                    bomber.sendMessage(ChatColor.GREEN + "✓ Вы успешно взорвали регион " + 
-                        ChatColor.GOLD + region.getId() + ChatColor.GREEN + "!");
-                }
+            // Если включена система прочности - наносим урон
+            if (region.isHealthEnabled()) {
+                int explosionDamage = protectionBlock.getExplosionDamage(explosiveType);
+                boolean isDestroyed = region.damage(explosionDamage);
 
-                // Логирование
-                plugin.getLogger().info("Регион " + region.getId() + " был взорван с помощью " + 
-                    explosiveType.name());
+                // Обновляем голограмму
+                plugin.getRegionManager().updateHologram(region.getId());
+
+                // Сохраняем изменения
+                plugin.getRegionManager().saveRegions();
+
+                // Уведомляем о повреждении
+                notifyRegionDamaged(region, bomber, explosionDamage);
+
+                // Удаляем блок из списка разрушаемых (мы контролируем разрушение сами)
+                blockIterator.remove();
+
+                // Если регион уничтожен
+                if (isDestroyed) {
+                    destroyRegion(region, bomber, explosiveType, block);
+                }
+            } else {
+                // Старая система: мгновенное удаление
+                boolean removed = plugin.getRegionManager().removeRegion(region.getId());
+
+                if (removed) {
+                    handleRegionDestruction(region, bomber, explosiveType);
+                }
             }
+        }
+    }
+
+    /**
+     * Обработать уничтожение региона (новая система с прочностью)
+     */
+    private void destroyRegion(ProtectedRegion region, Player bomber, Material explosiveType, Block block) {
+        try {
+            // Удаляем регион
+            plugin.getRegionManager().removeRegion(region.getId());
+
+            // Разрушаем блок
+            block.breakNaturally();
+
+            // 🎨 АНИМАЦИЯ РАЗРУШЕНИЯ
+            if (plugin.getConfig().getBoolean("show-particles-on-destruction", true)) {
+                visualizer.showDestructionAnimation(
+                        region.getLocation(),
+                        region.getRadius(),
+                        bomber
+                );
+            }
+
+            // Уведомление владельца
+            Player owner = plugin.getServer().getPlayer(region.getOwner());
+            if (owner != null && owner.isOnline()) {
+                sendRegionDestroyedMessage(owner, region, explosiveType);
+            }
+
+            // Уведомление взорвавшего
+            if (bomber != null) {
+                bomber.sendMessage(ChatColor.GREEN + "✓ Вы успешно уничтожили регион " +
+                        ChatColor.GOLD + region.getId() + ChatColor.GREEN + "!");
+            }
+
+            // Логирование
+            plugin.getLogger().info("Регион " + region.getId() + " был уничтожен с помощью " +
+                    explosiveType.name());
+
+        } catch (Exception e) {
+            plugin.getLogger().severe("Ошибка при уничтожении региона: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Обработать разрушение региона (старая система без прочности)
+     */
+    private void handleRegionDestruction(ProtectedRegion region, Player bomber, Material explosiveType) {
+        // 🎨 АНИМАЦИЯ РАЗРУШЕНИЯ
+        if (plugin.getConfig().getBoolean("show-particles-on-destruction", true)) {
+            visualizer.showDestructionAnimation(
+                    region.getLocation(),
+                    region.getRadius(),
+                    bomber
+            );
+        }
+
+        // Уведомление владельца
+        Player owner = plugin.getServer().getPlayer(region.getOwner());
+        if (owner != null && owner.isOnline()) {
+            sendRegionDestroyedMessage(owner, region, explosiveType);
+        }
+
+        // Уведомление взорвавшего
+        if (bomber != null) {
+            bomber.sendMessage(ChatColor.GREEN + "✓ Вы успешно взорвали регион " +
+                    ChatColor.GOLD + region.getId() + ChatColor.GREEN + "!");
+        }
+
+        // Логирование
+        plugin.getLogger().info("Регион " + region.getId() + " был взорван с помощью " +
+                explosiveType.name());
+    }
+
+    /**
+     * Отправить сообщение об уничтожении региона
+     */
+    private void sendRegionDestroyedMessage(Player owner, ProtectedRegion region, Material explosiveType) {
+        owner.sendMessage(ChatColor.RED + "═══════════════════════════════");
+        owner.sendMessage(ChatColor.DARK_RED + "✖ ВАШ РЕГИОН УНИЧТОЖЕН!");
+        owner.sendMessage(ChatColor.RED + "Регион: " + ChatColor.YELLOW + region.getId());
+        owner.sendMessage(ChatColor.RED + "Тип взрыва: " + ChatColor.YELLOW +
+                explosiveType.name().toLowerCase().replace("_", " "));
+        owner.sendMessage(ChatColor.RED + "═══════════════════════════════");
+
+        // Звук тревоги
+        owner.playSound(owner.getLocation(), Sound.ENTITY_WITHER_DEATH, 1.0f, 0.5f);
+    }
+
+    /**
+     * Уведомить о повреждении региона
+     */
+    private void notifyRegionDamaged(ProtectedRegion region, Player bomber, int damage) {
+        try {
+            // Уведомление владельца
+            Player owner = plugin.getServer().getPlayer(region.getOwner());
+            if (owner != null && owner.isOnline()) {
+                String message = ChatColor.translateAlternateColorCodes('&',
+                        "&c⚠ Регион получил урон! &7[&4" + region.getCurrentHealth() +
+                                "&c/&6" + region.getMaxHealth() + "&7]"
+                );
+                owner.sendActionBar(message);
+
+                // Звук предупреждения если здоровье низкое
+                if (region.getHealthPercentage() < 30) {
+                    owner.playSound(owner.getLocation(), Sound.ENTITY_IRON_GOLEM_DAMAGE, 1.0f, 0.8f);
+                }
+            }
+
+            // Уведомление взорвавшего
+            if (bomber != null) {
+                String message = ChatColor.translateAlternateColorCodes('&',
+                        "&a✓ Урон нанесен! &7[&6" + region.getCurrentHealth() +
+                                "&7/&6" + region.getMaxHealth() + "&7]"
+                );
+                bomber.sendActionBar(message);
+            }
+
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка при уведомлении о повреждении: " + e.getMessage());
         }
     }
 
@@ -166,7 +289,7 @@ public class ExplosionListener implements Listener {
      */
     private boolean isCenterBlock(Location blockLoc, Location regionLoc) {
         return blockLoc.getBlockX() == regionLoc.getBlockX() &&
-               blockLoc.getBlockY() == regionLoc.getBlockY() &&
-               blockLoc.getBlockZ() == regionLoc.getBlockZ();
+                blockLoc.getBlockY() == regionLoc.getBlockY() &&
+                blockLoc.getBlockZ() == regionLoc.getBlockZ();
     }
 }

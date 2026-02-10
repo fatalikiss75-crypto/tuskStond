@@ -2,6 +2,8 @@ package com.example.tushpStones.managers;
 
 import com.example.tushpStones.TushpStones;
 import com.example.tushpStones.models.ProtectedRegion;
+import com.example.tushpStones.models.ProtectionBlock;
+import com.example.tushpStones.utils.RegionHologram;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldguard.protection.managers.RegionManager;
@@ -22,8 +24,10 @@ public class TushpRegionManager {
 
     private final TushpStones plugin;
     private final Map<String, ProtectedRegion> regions = new HashMap<>();
+    private final Map<String, RegionHologram> holograms = new HashMap<>();
     private File regionsFile;
     private FileConfiguration regionsConfig;
+
     public TushpRegionManager(TushpStones plugin) {
         this.plugin = plugin;
     }
@@ -33,7 +37,7 @@ public class TushpRegionManager {
      */
     public void loadRegions() {
         regionsFile = new File(plugin.getDataFolder(), "regions.yml");
-        
+
         if (!regionsFile.exists()) {
             try {
                 regionsFile.createNewFile();
@@ -51,6 +55,8 @@ public class TushpRegionManager {
                 ProtectedRegion region = ProtectedRegion.deserialize(regionsConfig.getConfigurationSection(key));
                 if (region != null) {
                     regions.put(key, region);
+                    // Создаем голограмму для загруженного региона
+                    createHologram(region);
                 }
             } catch (Exception e) {
                 plugin.getLogger().warning("Ошибка загрузки региона " + key + ": " + e.getMessage());
@@ -82,11 +88,11 @@ public class TushpRegionManager {
      */
     public boolean createRegion(Player player, Location location, String blockType, int radius, int priority) {
         String regionId = generateRegionId(player);
-        
+
         // Проверка лимита регионов
         int currentRegions = getPlayerRegionsCount(player);
         int maxRegions = getMaxRegions(player);
-        
+
         if (currentRegions >= maxRegions && maxRegions > 0) {
             return false;
         }
@@ -119,23 +125,37 @@ public class TushpRegionManager {
             wgRegion.setPriority(priority);
             wgRegion.getOwners().addPlayer(player.getUniqueId());
 
-
             wgManager.addRegion(wgRegion);
+
+            // Получаем настройки прочности из конфига блока
+            ProtectionBlock protectionBlock = plugin.getConfigManager().getProtectionBlock(location.getBlock().getType());
 
             // Сохранение в нашей системе
             ProtectedRegion region = new ProtectedRegion(
-                regionId,
-                player.getUniqueId(),
-                location,
-                radius,
-                blockType,
-                priority,
-                new HashSet<>(),
-                new HashSet<>()
+                    regionId,
+                    player.getUniqueId(),
+                    location,
+                    radius,
+                    blockType,
+                    priority,
+                    new HashSet<>(),
+                    new HashSet<>()
             );
+
+            // Инициализируем систему прочности если она включена
+            if (protectionBlock != null && protectionBlock.isHealthEnabled()) {
+                region.initHealth(
+                        protectionBlock.getDefaultHealth(),
+                        protectionBlock.getMaxHealth(),
+                        true
+                );
+            }
 
             regions.put(regionId, region);
             saveRegions();
+
+            // Создаем голограмму для нового региона
+            createHologram(region);
 
             return true;
 
@@ -156,6 +176,9 @@ public class TushpRegionManager {
         if (world == null) return false;
 
         try {
+            // Удаляем голограмму
+            removeHologram(regionId);
+
             RegionManager wgManager = WorldGuard.getInstance()
                     .getPlatform()
                     .getRegionContainer()
@@ -176,6 +199,62 @@ public class TushpRegionManager {
     }
 
     /**
+     * Создать голограмму для региона
+     */
+    public void createHologram(ProtectedRegion region) {
+        try {
+            if (!plugin.getConfig().getBoolean("holograms.enabled", true)) {
+                return;
+            }
+
+            // Проверяем, включена ли система прочности для этого региона
+            if (!region.isHealthEnabled()) {
+                return;
+            }
+
+            // Удаляем старую голограмму если есть
+            removeHologram(region.getId());
+
+            // Создаем новую
+            RegionHologram hologram = new RegionHologram(plugin, region);
+            hologram.create();
+            holograms.put(region.getId(), hologram);
+
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка создания голограммы: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Удалить голограмму региона
+     */
+    public void removeHologram(String regionId) {
+        try {
+            RegionHologram hologram = holograms.get(regionId);
+            if (hologram != null) {
+                hologram.remove();
+                holograms.remove(regionId);
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка удаления голограммы: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Обновить голограмму региона
+     */
+    public void updateHologram(String regionId) {
+        try {
+            RegionHologram hologram = holograms.get(regionId);
+            if (hologram != null) {
+                hologram.update();
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка обновления голограммы: " + e.getMessage());
+        }
+    }
+
+    /**
      * Получение региона по локации
      */
     public ProtectedRegion getRegionAtLocation(Location location) {
@@ -192,8 +271,8 @@ public class TushpRegionManager {
      */
     public List<ProtectedRegion> getPlayerRegions(Player player) {
         return regions.values().stream()
-            .filter(region -> region.getOwner().equals(player.getUniqueId()))
-            .collect(Collectors.toList());
+                .filter(region -> region.getOwner().equals(player.getUniqueId()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -201,8 +280,8 @@ public class TushpRegionManager {
      */
     public int getPlayerRegionsCount(Player player) {
         return (int) regions.values().stream()
-            .filter(region -> region.getOwner().equals(player.getUniqueId()))
-            .count();
+                .filter(region -> region.getOwner().equals(player.getUniqueId()))
+                .count();
     }
 
     /**
@@ -240,5 +319,9 @@ public class TushpRegionManager {
 
     public ProtectedRegion getRegion(String id) {
         return regions.get(id);
+    }
+
+    public Map<String, RegionHologram> getHolograms() {
+        return holograms;
     }
 }

@@ -17,7 +17,7 @@ public class ConfigManager {
     private FileConfiguration config;
     private FileConfiguration blocksConfig;
     private File blocksFile;
-    
+
     private final Map<Material, ProtectionBlock> protectionBlocks = new HashMap<>();
 
     public ConfigManager(TushpStones plugin) {
@@ -44,11 +44,11 @@ public class ConfigManager {
      */
     private void createBlocksConfig() {
         blocksFile = new File(plugin.getDataFolder(), "blocks.yml");
-        
+
         if (!blocksFile.exists()) {
             plugin.saveResource("blocks.yml", false);
         }
-        
+
         blocksConfig = YamlConfiguration.loadConfiguration(blocksFile);
     }
 
@@ -57,7 +57,7 @@ public class ConfigManager {
      */
     private void loadProtectionBlocks() {
         protectionBlocks.clear();
-        
+
         ConfigurationSection blocksSection = blocksConfig.getConfigurationSection("blocks");
         if (blocksSection == null) {
             plugin.getLogger().warning("Секция 'blocks' не найдена в blocks.yml!");
@@ -73,11 +73,11 @@ public class ConfigManager {
                 int radius = blockSection.getInt("radius", 10);
                 int priority = blockSection.getInt("priority", 0);
                 boolean canBeDestroyed = blockSection.getBoolean("can-be-destroyed", false);
-                
+
                 // Загрузка динамитов, которые могут разрушить
                 List<String> allowedExplosivesRaw = blockSection.getStringList("allowed-explosives");
                 Set<Material> allowedExplosives = new HashSet<>();
-                
+
                 for (String explosive : allowedExplosivesRaw) {
                     try {
                         allowedExplosives.add(Material.valueOf(explosive.toUpperCase()));
@@ -95,12 +95,39 @@ public class ConfigManager {
                     }
                 }
 
+                // Загрузка настроек прочности
+                ConfigurationSection healthSection = blockSection.getConfigurationSection("health");
+                boolean healthEnabled = false;
+                int defaultHealth = 0;
+                int maxHealth = 0;
+                Material upgradeItem = null;
+                int upgradeAmount = 0;
+                int costPerUpgrade = 0;
+
+                if (healthSection != null) {
+                    healthEnabled = healthSection.getBoolean("enabled", false);
+                    defaultHealth = healthSection.getInt("default", 100);
+                    maxHealth = healthSection.getInt("max", 1000);
+
+                    String upgradeItemStr = healthSection.getString("upgrade-item", "DIAMOND");
+                    try {
+                        upgradeItem = Material.valueOf(upgradeItemStr.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        plugin.getLogger().warning("Неизвестный предмет для улучшения: " + upgradeItemStr);
+                        upgradeItem = Material.DIAMOND;
+                    }
+
+                    upgradeAmount = healthSection.getInt("upgrade-amount", 50);
+                    costPerUpgrade = healthSection.getInt("cost-per-upgrade", 1);
+                }
+
                 ProtectionBlock protectionBlock = new ProtectionBlock(
-                    key, material, radius, priority, canBeDestroyed, allowedExplosives, flags
+                        key, material, radius, priority, canBeDestroyed, allowedExplosives, flags,
+                        healthEnabled, defaultHealth, maxHealth, upgradeItem, upgradeAmount, costPerUpgrade
                 );
 
                 protectionBlocks.put(material, protectionBlock);
-                
+
             } catch (Exception e) {
                 plugin.getLogger().warning("Ошибка загрузки блока " + key + ": " + e.getMessage());
             }

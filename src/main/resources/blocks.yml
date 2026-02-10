@@ -12,6 +12,7 @@
 #       can-be-destroyed: <true/false>
 #       allowed-explosives: [список_взрывчатки]
 #       flags: <флаги_WorldGuard>
+#       health: <система_прочности>
 #
 # Типы взрывчатки:
 #   - TNT - обычный динамит
@@ -20,6 +21,14 @@
 #   - WITHER_SKELETON_SKULL - визер
 #   - FIRE_CHARGE - огненный шар
 #   - END_CRYSTAL - кристалл края
+#
+# Система прочности (health):
+#   enabled: true              # Можно ли улучшать прочность
+#   default: 100               # Начальная прочность
+#   max: 1000                  # Максимальная прочность
+#   upgrade-item: DIAMOND      # Предмет для улучшения
+#   upgrade-amount: 50         # Сколько прочности добавляет 1 предмет
+#   cost-per-upgrade: 1        # Сколько предметов нужно за улучшение
 # ══════════════════════════════════════════════════════════
 
 blocks:
@@ -39,6 +48,14 @@ blocks:
       tnt: deny
       fire-spread: deny
       lava-flow: deny
+    # Система прочности
+    health:
+      enabled: true
+      default: 100
+      max: 500
+      upgrade-item: DIAMOND
+      upgrade-amount: 50
+      cost-per-upgrade: 1
 
   # ═══ СРЕДНИЙ ПРИВАТ (красный песчаник) ═══
   # Можно взорвать только обычным TNT
@@ -58,6 +75,13 @@ blocks:
       fire-spread: deny
       lava-flow: deny
       water-flow: deny
+    health:
+      enabled: true
+      default: 200
+      max: 800
+      upgrade-item: DIAMOND
+      upgrade-amount: 40
+      cost-per-upgrade: 1
 
   # ═══ УСИЛЕННЫЙ ПРИВАТ (обсидиан) ═══
   # Можно взорвать только вагонеткой с TNT или кристаллом края
@@ -80,6 +104,13 @@ blocks:
       water-flow: deny
       chest-access: deny
       use: deny
+    health:
+      enabled: true
+      default: 300
+      max: 1000
+      upgrade-item: EMERALD
+      upgrade-amount: 30
+      cost-per-upgrade: 1
 
   # ═══ КРЕПОСТЬ (beacon) ═══
   # Можно взорвать только визером
@@ -105,6 +136,13 @@ blocks:
       chest-access: deny
       use: deny
       interact: deny
+    health:
+      enabled: true
+      default: 500
+      max: 1500
+      upgrade-item: NETHERITE_INGOT
+      upgrade-amount: 25
+      cost-per-upgrade: 1
 
   # ═══ НЕРАЗРУШИМЫЙ ПРИВАТ (драконье яйцо) ═══
   # НЕЛЬЗЯ взорвать ничем!
@@ -130,6 +168,9 @@ blocks:
       use: deny
       interact: deny
       wither-damage: deny
+    # Система прочности отключена для неразрушимого привата
+    health:
+      enabled: false
 
   # ═══ ПРЕМИУМ ПРИВАТ (изумрудный блок) ═══
   # Большой радиус, можно взорвать только крипером (для рейдов)
@@ -147,6 +188,13 @@ blocks:
       fire-spread: deny
       lava-flow: deny
       water-flow: deny
+    health:
+      enabled: true
+      default: 400
+      max: 1200
+      upgrade-item: EMERALD
+      upgrade-amount: 35
+      cost-per-upgrade: 1
 
   # ═══ VIP ПРИВАТ (алмазный блок) ═══
   # Очень большой радиус, можно взорвать огненным шаром
@@ -167,6 +215,13 @@ blocks:
       lava-flow: deny
       water-flow: deny
       chest-access: deny
+    health:
+      enabled: true
+      default: 600
+      max: 2000
+      upgrade-item: DIAMOND
+      upgrade-amount: 50
+      cost-per-upgrade: 1
 
   # ═══ МИНИ ПРИВАТ (золотой самородок) ═══
   # Маленький приват для новичков, легко взрывается
@@ -183,10 +238,17 @@ blocks:
       pvp: deny
       mob-spawning: deny
       fire-spread: deny
+    health:
+      enabled: true
+      default: 50
+      max: 200
+      upgrade-item: IRON_INGOT
+      upgrade-amount: 25
+      cost-per-upgrade: 1
 
 # ══════════════════════════════════════════════════════════
 # ПРИМЕРЫ ИСПОЛЬЗОВАНИЯ:
-# 
+#
 # 1. Приват который НЕЛЬЗЯ взорвать:
 #    can-be-destroyed: false
 #
@@ -204,4 +266,17 @@ blocks:
 #    allowed-explosives:
 #      - TNT
 #      - CREEPER_HEAD
+#
+# 5. Система прочности отключена:
+#    health:
+#      enabled: false
+#
+# 6. Система прочности с алмазами:
+#    health:
+#      enabled: true
+#      default: 100
+#      max: 1000
+#      upgrade-item: DIAMOND
+#      upgrade-amount: 50
+#      cost-per-upgrade: 1
 # ══════════════════════════════════════════════════════════
